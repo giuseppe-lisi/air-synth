@@ -1,7 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
+import { useParametersStore } from "../store/useParametersStore";
 
 export default function VideoFeedComponent() {
+  const { setCutoff } = useParametersStore();
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -9,6 +12,54 @@ export default function VideoFeedComponent() {
     let webcam = null;
     let animationFrameId;
     let handLandmarker;
+
+    const detectHands = () => {
+      if (
+        videoRef.current &&
+        videoRef.current.readyState > 0 &&
+        handLandmarker
+      ) {
+        const detections = handLandmarker.detectForVideo(
+          videoRef.current,
+          performance.now(),
+        );
+
+        // drawns tracking circles on landmarks
+        if (detections.landmarks) {
+          drawLandmarks(detections.landmarks[0]);
+        }
+      }
+      // recursively detects hands on the next drawn frame on video stream
+      requestAnimationFrame(detectHands);
+    };
+
+    // draws circles on landmarks on recognized hand
+    const drawLandmarks = (landmarksArray) => {
+      const canvas = canvasRef.current;
+      if (!canvas || !landmarksArray) {
+        if (canvas) {
+          canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+        }
+        return;
+      }
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "lime";
+
+      if (!landmarksArray) return;
+
+      const fingertipIndices = [4, 8, 12, 16, 20];
+      landmarksArray.forEach((landmark, i) => {
+        if (fingertipIndices.includes(i)) {
+          const x = landmark.x * canvas.width;
+          const y = landmark.y * canvas.height;
+
+          ctx.beginPath();
+          ctx.arc(x, y, 5, 0, 2 * Math.PI);
+          ctx.fill();
+        }
+      });
+    };
 
     // initializes hand recognition model
     const startHandRecognition = async () => {
@@ -25,45 +76,6 @@ export default function VideoFeedComponent() {
       } catch (error) {
         console.log("Error initializing hand recognition", error.message);
       }
-    };
-
-    const detectHands = () => {
-      if (
-        videoRef.current &&
-        videoRef.current.readyState > 0 &&
-        handLandmarker
-      ) {
-        const detections = handLandmarker.detectForVideo(
-          videoRef.current,
-          performance.now(),
-        );
-
-        // drawns tracking circles on landmarks
-        if (detections.landmarks) {
-          drawLandmarks(detections.landmarks);
-        }
-      }
-      // recursively detects hands on the next drawn frame on video stream
-      requestAnimationFrame(detectHands);
-    };
-
-    // draws circles on landmarks on recognized hand
-    const drawLandmarks = (landmarksArray) => {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "lime";
-
-      landmarksArray.forEach((landmarks) => {
-        landmarks.forEach((landmark, i, landmarks) => {
-          const x = landmark.x * canvas.width;
-          const y = landmark.y * canvas.height;
-
-          ctx.beginPath();
-          ctx.arc(x, y, 5, 0, 2 * Math.PI);
-          ctx.fill();
-        });
-      });
     };
 
     // gets access to camera on page load
@@ -107,20 +119,20 @@ export default function VideoFeedComponent() {
 
   return (
     <>
-      <div className="app">
-        <div style={{ position: "relative" }}>
+      <div className="p-6">
+        <div className="relative w-[800px] h-[600px]">
           <video
             ref={videoRef}
             autoPlay
             playsInline
             muted
-            style={{ position: "absolute" }}
+            className="absolute top-0 left-0 w-full h-full object-cover rounded-3xl shadow-lg"
           />
           <canvas
             ref={canvasRef}
             width={800}
             height={600}
-            style={{ position: "absolute" }}
+            className="absolute top-0 left-0 w-full h-full z-10 pointer-events-none"
           ></canvas>
         </div>
       </div>
