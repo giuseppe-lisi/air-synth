@@ -1,98 +1,45 @@
-import React, { useEffect, useRef, useState } from "react";
-import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
+import { useEffect, useRef, useState } from "react";
 import { useParametersStore } from "../store/useParametersStore";
+import { getWebcam } from "../utils/getWebcam.js";
+import {
+  createHandLandmarkerModel,
+  drawHandLandmarks,
+} from "../utils/handRecognition.js";
 
 export default function VideoFeedComponent() {
   const { setCutoff, cutoff } = useParametersStore();
-
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const fingertipIndices = [4, 8, 12, 16, 20];
 
   useEffect(() => {
-    let webcam = null;
-    let handLandmarker;
+    let webcam;
+    let handLandmarkerModel;
 
-    const detectHands = () => {
-      if (
-        videoRef.current &&
-        videoRef.current.readyState > 0 &&
-        handLandmarker
-      ) {
-        const detections = handLandmarker.detectForVideo(
+    const initializeHandTrackingFunctionalities = async () => {
+      try {
+        webcam = await getWebcam();
+
+        if (webcam && videoRef.current) {
+          videoRef.current.srcObject = webcam;
+        }
+
+        handLandmarkerModel = await createHandLandmarkerModel();
+        drawHandLandmarks(
           videoRef.current,
-          performance.now(),
+          handLandmarkerModel,
+          canvasRef.current,
+          fingertipIndices,
         );
-
-        // drawns tracking circles on landmarks
-        if (detections.landmarks) {
-          drawLandmarks(detections.landmarks[0]);
-        }
-      }
-      // recursively detects hands on the next drawn frame on video stream
-      requestAnimationFrame(detectHands);
-    };
-
-    // draws circles on landmarks on recognized hand
-    const drawLandmarks = (landmarksArray) => {
-      const canvas = canvasRef.current;
-      if (!canvas || !landmarksArray) {
-        if (canvas) {
-          canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-        }
-        return;
-      }
-      const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      if (!landmarksArray) return;
-
-      const fingertipIndices = [4, 8, 12, 16, 20];
-      landmarksArray.forEach((landmark, i) => {
-        if (fingertipIndices.includes(i)) {
-          const x = landmark.x * canvas.width;
-          const y = landmark.y * canvas.height;
- 
-          ctx.fillStyle = "lime";
-          ctx.fillRect(x, y, 5, 5);
-        }
-      });
-    };
-
-    // initializes hand recognition model
-    const startHandRecognition = async () => {
-      try {
-        const vision = await FilesetResolver.forVisionTasks("/wasm");
-        handLandmarker = await HandLandmarker.createFromOptions(vision, {
-          baseOptions: {
-            modelAssetPath: "/hand_landmarker.task",
-          },
-          numHands: 1,
-          runningMode: "VIDEO",
-        });
-        detectHands();
       } catch (error) {
-        console.log("Error initializing hand recognition", error.message);
+        console.log(
+          "Error initializing hand tracking functionality: ",
+          error.message,
+        );
       }
     };
 
-    // gets access to camera on page load
-    const getCameraFeed = async () => {
-      try {
-        let stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 800, height: 600, frameRate: { ideal: 30 } },
-          audio: false,
-        });
-
-        videoRef.current.srcObject = stream;
-        webcam = stream;
-      } catch (error) {
-        console.log("Could not activate webcam feed:", error.message);
-      }
-    };
-
-    getCameraFeed().then(() => {
-      startHandRecognition();
-    });
+    initializeHandTrackingFunctionalities();
 
     // cleanup video streams on component unmount
     return () => {
@@ -103,10 +50,9 @@ export default function VideoFeedComponent() {
         });
         console.log("Webcam unmounted");
       }
-
-      // hand detection model cleanup
-      if (handLandmarker) {
-        handLandmarker.close();
+      if (handLandmarkerModel) {
+        handLandmarkerModel.close();
+        console.log("Model disabled");
       }
     };
   }, []);
