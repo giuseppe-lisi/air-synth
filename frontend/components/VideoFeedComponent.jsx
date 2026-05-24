@@ -3,14 +3,13 @@ import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
 import { useParametersStore } from "../store/useParametersStore";
 
 export default function VideoFeedComponent() {
-  const { setCutoff } = useParametersStore();
+  const { setCutoff, cutoff } = useParametersStore();
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
   useEffect(() => {
     let webcam = null;
-    let animationFrameId;
     let handLandmarker;
 
     const detectHands = () => {
@@ -44,7 +43,6 @@ export default function VideoFeedComponent() {
       }
       const ctx = canvas.getContext("2d");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "lime";
 
       if (!landmarksArray) return;
 
@@ -53,10 +51,9 @@ export default function VideoFeedComponent() {
         if (fingertipIndices.includes(i)) {
           const x = landmark.x * canvas.width;
           const y = landmark.y * canvas.height;
-
-          ctx.beginPath();
-          ctx.arc(x, y, 5, 0, 2 * Math.PI);
-          ctx.fill();
+ 
+          ctx.fillStyle = "lime";
+          ctx.fillRect(x, y, 5, 5);
         }
       });
     };
@@ -82,7 +79,7 @@ export default function VideoFeedComponent() {
     const getCameraFeed = async () => {
       try {
         let stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 800, height: 600, frameRate: { ideal: 60 } },
+          video: { width: 800, height: 600, frameRate: { ideal: 30 } },
           audio: false,
         });
 
@@ -111,9 +108,6 @@ export default function VideoFeedComponent() {
       if (handLandmarker) {
         handLandmarker.close();
       }
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
     };
   }, []);
 
@@ -126,13 +120,13 @@ export default function VideoFeedComponent() {
             autoPlay
             playsInline
             muted
-            className="absolute top-0 left-0 w-full h-full object-cover rounded-3xl shadow-lg"
+            className="transform -scale-x-100 absolute top-0 left-0 w-full h-full object-cover rounded-3xl shadow-lg"
           />
           <canvas
             ref={canvasRef}
             width={800}
             height={600}
-            className="absolute top-0 left-0 w-full h-full z-10 pointer-events-none"
+            className="transform -scale-x-100 absolute top-0 left-0 w-full h-full z-10 pointer-events-none"
           ></canvas>
         </div>
       </div>
