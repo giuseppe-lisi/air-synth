@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useParametersStore } from "../store/useParametersStore";
 import { getWebcam } from "../utils/getWebcam.js";
 import {
   createHandLandmarkerModel,
@@ -7,10 +6,9 @@ import {
 } from "../utils/handRecognition.js";
 
 export default function VideoFeedComponent() {
-  const { setCutoff, cutoff } = useParametersStore();
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const fingertipIndices = [4, 8, 12, 16, 20];
+  const fingertipIndices = [4, 8];
 
   useEffect(() => {
     let webcam;
