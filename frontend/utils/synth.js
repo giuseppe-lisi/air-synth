@@ -38,7 +38,7 @@ export const createSynth = () => {
     }
 
     function setCutoffFrequency(value) {
-        filter.frequency = value;
+        filter.frequency.rampTo(value, 0.05);
     }
 
     function toSpeakers() {
@@ -54,6 +54,6 @@ export const createSynth = () => {
         setVolume,
         setWaveform,
         setCutoffFrequency,
-        toSpeakers
+        toSpeakers,
     };
 };
