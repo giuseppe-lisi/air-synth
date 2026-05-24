@@ -30,7 +30,21 @@ export default function SynthComponent() {
                 error.message,
             );
         }
-    });
+
+        const unsubscribe = useHandPositionStore.subscribe(
+            (state) => state.indexX,
+            (xValue) => {
+                if (synthRef.current) {
+                    synthRef.current.setCutoffFrequency(xValue);
+                }
+            },
+        );
+
+        // cleanup, unmounts linstener on component unmount
+        return () => {
+            unsubscribe();
+        };
+    }, []);
 
     return (
         <>
