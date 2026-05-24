@@ -1,6 +1,5 @@
 import { create } from "zustand";
-import { subscribeWithSelector } from "zustand/middleware"; // 👈 Add this
-
+import { subscribeWithSelector } from "zustand/middleware";
 export const useHandPositionStore = create(
 	subscribeWithSelector((set, get) => ({
 		indexX: 0,
