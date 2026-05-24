@@ -73,17 +73,28 @@ const drawHandLandmarks = (
         ) {
             if (detections.landmarks[0][8]) {
                 const { x, y } = detections.landmarks[0][8];
+                // Get your clean 0.0 to 1.0 percentage values
+                const invertedX = clamp(1 - x, 0, 1);
+                const invertedY = clamp(1 - y, 0, 1);
 
-                const normalizedX = clamp((1 - x) * 1000, 50, 1000);
-                const normalizedY = clamp((1 - y) * 1000, 50, 1000);
+                const minFreq = 80;
+                const maxFreq = 16000;
 
-                // only update state if the movement was substantial, otherwise, keep current state
+                // logarithmic interpolation
+                const logX = minFreq * Math.pow(maxFreq / minFreq, invertedX);
+                const logY = minFreq * Math.pow(maxFreq / minFreq, invertedY);
+
                 const currentStore = useHandPositionStore.getState();
-                if (
-                    Math.abs(normalizedX - currentStore.indexX) > 4 ||
-                    Math.abs(normalizedY - currentStore.indexY) > 4
-                ) {
-                    currentStore.setIndexPosition(normalizedX, normalizedY);
+
+                // percentage based detection change calculation
+                const percentChangeX =
+                    Math.abs(logX - currentStore.indexX) / currentStore.indexX;
+                const percentChangeY =
+                    Math.abs(logY - currentStore.indexY) / currentStore.indexY;
+
+                // Trigger update if hand moves more than 5% relative to its current frequency position
+                if (percentChangeX > 0.05 || percentChangeY > 0.05) {
+                    currentStore.setIndexPosition(logX, logY);
                 }
             }
 
