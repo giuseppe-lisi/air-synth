@@ -11,7 +11,7 @@ export function Oscillator({oscNum, synthRef}) {
         <>
             <div className="border rounded-2xl p-6 bg-base-100 shadow-sm flex-1">
                 <legend className="fieldset-legend font-black text-lg mb-4 text-primary">
-                    OSC {oscNum}
+                    OSC {oscNum.slice(-1)}
                 </legend>
 
                 <div className="form-control mb-4">
@@ -37,22 +37,21 @@ export function Oscillator({oscNum, synthRef}) {
                     </select>
                 </div>
 
-                {/* todo: handle detune of oscs */}
-                {/* Detune
+                {/* Detune control */}
                 <div className="form-control">
                     <legend className="fieldset-legend text-xs opacity-70 uppercase tracking-wide">
                         Detune
                     </legend>
                     <input
                         type="range"
-                        min="-500"
-                        max="500"
+                        min="-700"
+                        max="700"
                         className="range range-xs"
-                        name="osc1"
+                        name={oscNum}
                         step={1}
                         onDoubleClick={(e) => {
                             handleDetuneDoubleClick(e);
-                            e.target.value = detuneDefaultValue;
+                            e.target.value = 0;
                         }}
                         onChange={(e) => {
                             synthRef.current?.setDetune(
@@ -61,7 +60,7 @@ export function Oscillator({oscNum, synthRef}) {
                             );
                         }}
                     />
-                </div> */}
+                </div>
             </div>
         </>
     );
