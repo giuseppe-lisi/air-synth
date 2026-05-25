@@ -67,7 +67,7 @@ const drawHand = (detections, canvas) => {
             // only draws index and thumb points on canvas
             for (const point of [landmarks[4], landmarks[8]]) {
                 ctx.beginPath();
-                ctx.arc(point.x * canvas.width, point.y * canvas.height, 5, 0, 2 * Math.PI);
+                ctx.arc(point.x * canvas.width, point.y * canvas.height, 2.5, 0, 2 * Math.PI);
                 ctx.fillStyle = "#00FF00";
                 ctx.fill();
             }
