@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { getWebcam } from "../utils/getWebcam.js";
+import { getWebcam } from "../utils/getWebcamUtil.js";
 import {
-  createHandLandmarkerModel,
-  drawHandLandmarks,
-} from "../utils/handRecognition.js";
+  initializeHandLandmarkerModel,
+  getHandLandmarks
+} from "../utils/handRecognitionUtils.js";
 
 export default function VideoFeedComponent() {
   const videoRef = useRef(null);
@@ -18,18 +18,17 @@ export default function VideoFeedComponent() {
       try {
         webcam = await getWebcam();
 
-        if (webcam && videoRef.current) {
-          videoRef.current.srcObject = webcam;
-        }
+        // sets source for landmark model to be the webcam video on screen
+        if (webcam && videoRef.current) {videoRef.current.srcObject = webcam;}
 
-        handLandmarkerModel = await createHandLandmarkerModel();
-        drawHandLandmarks(
-          videoRef.current,
-          handLandmarkerModel,
-          canvasRef.current,
-          FINGERTIP_INDICES,
-        );
-      } catch (error) {
+        // initializes hand recognition model
+        handLandmarkerModel = await initializeHandLandmarkerModel();
+        
+        // starts recursive loop to get new handlandmarks on every new frame of webcam stream
+        getHandLandmarks(videoRef.current, canvasRef.current, handLandmarkerModel);
+
+
+    } catch (error) {
         console.log(
           "Error initializing hand tracking functionality: ",
           error.message,
@@ -42,16 +41,9 @@ export default function VideoFeedComponent() {
     // cleanup video streams on component unmount
     return () => {
       // webcam cleanup
-      if (webcam) {
-        webcam.getTracks().forEach((track) => {
-          track.stop();
-        });
-        console.log("Webcam unmounted");
-      }
-      if (handLandmarkerModel) {
-        handLandmarkerModel.close();
-        console.log("Model disabled");
-      }
+      if (webcam) { webcam.getTracks().forEach(track => track.stop()); }
+      // closes hand tracking model
+      if (handLandmarkerModel) { handLandmarkerModel.close() }
     };
   }, []);
 
