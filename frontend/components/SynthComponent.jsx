@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useHandPositionStore } from "../store/useHandPositionStore";
+import { useHandTrackingCoordsStore } from "../store/useHandTrackingCoordsStore";
 import * as Tone from "tone";
 import { createSynth } from "../utils/synth";
 
@@ -45,7 +45,7 @@ export default function SynthComponent() {
             );
         }
 
-        const unsubscribe = useHandPositionStore.subscribe(
+        const unsubscribe = useHandTrackingCoordsStore.subscribe(
             (state) => state.indexX,
             (xValue) => {
                 if (synthRef.current) {

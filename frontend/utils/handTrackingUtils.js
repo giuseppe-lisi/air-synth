@@ -1,5 +1,8 @@
 import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
-import calculateLogarithmicIndexFingerPosition from "./calculateLogarithmicIndexFingerPosition";
+import calculateLogarithmicIndexFingerPosition from "./calculateLogarithmicIndexFingerPositionUtil";
+import { useHandTrackingCoordsStore } from "../store/useHandTrackingCoordsStore";
+const { setLeftIndexCoords, setRightIndexCoords } = useHandTrackingCoordsStore.getState();
+
 
 // initializes hand recognition model
 const initializeHandLandmarkerModel = async () => {
@@ -35,9 +38,6 @@ const getHandLandmarks = (video, canvas, handLandmarkerModel) => {
         performance.now(),
     );
 
-    console.log(detections);
-    
-
     // draws hand landmarks on screen
     if (detections && detections.landmarks && detections.landmarks.length > 0) {
         drawHand(detections, canvas);
@@ -59,16 +59,40 @@ const drawHand = (detections, canvas) => {
 
     // clear previous frame
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // updates global state of index coords
+    setGlobalStateIndexCoords(detections)
     
     // draw new landmarks
     if (detections.landmarks) {
         for (const landmarks of detections.landmarks) {
-            for (const point of landmarks) {
+            // only draws index and thumb points on canvas
+            for (const point of [landmarks[4], landmarks[8]]) {
                 ctx.beginPath();
                 ctx.arc(point.x * canvas.width, point.y * canvas.height, 5, 0, 2 * Math.PI);
                 ctx.fillStyle = "#00FF00";
                 ctx.fill();
             }
+        }
+    }
+};
+
+const setGlobalStateIndexCoords = (detections) => {
+    // check that we have data to look through
+    if (!detections.landmarks || !detections.handedness) return;
+
+    for (let i = 0; i < detections.landmarks.length; i++) {
+        const landmarks = detections.landmarks[i];
+
+        const coords = { x: landmarks[8].x, y: landmarks[8].y };
+        
+        // get hand we are trying to change coords of
+        const handLabel = detections.handedness[i]?.[0]?.categoryName || detections.handedness[i]?.categoryName;
+
+        if (handLabel === "Left") {
+            setLeftIndexCoords(coords);
+        } else if (handLabel === "Right") {
+            setRightIndexCoords(coords);
         }
     }
 };
