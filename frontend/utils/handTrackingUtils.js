@@ -1,5 +1,4 @@
 import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
-import { useHandPositionStore } from "../store/useHandPositionStore";
 import calculateLogarithmicIndexFingerPosition from "./calculateLogarithmicIndexFingerPosition";
 
 // initializes hand recognition model
@@ -13,7 +12,7 @@ const initializeHandLandmarkerModel = async () => {
                     modelAssetPath: "/hand_landmarker.task",
                     delegate: "GPU",
                 },
-                numHands: 1,
+                numHands: 2,
                 runningMode: "VIDEO",
             },
         );
@@ -24,33 +23,40 @@ const initializeHandLandmarkerModel = async () => {
 };
 
 // gets handlandmarks positions on canvas given a video element
-const getHandLandmarks = (videoElement, canvasElement, handLandmarkerModel) => {
+const getHandLandmarks = (video, canvas, handLandmarkerModel) => {
     // Handle missing elements
-    if (!videoElement || !handLandmarkerModel || videoElement.readyState < 2) {
+    if (!video || !handLandmarkerModel || video.readyState < 2) {
         return;
     }
     
     // hands model video where it needs to detect landmarks
     const detections = handLandmarkerModel.detectForVideo(
-        videoElement,
+        video,
         performance.now(),
     );
 
+    console.log(detections);
+    
+
     // draws hand landmarks on screen
     if (detections && detections.landmarks && detections.landmarks.length > 0) {
-        drawHand(detections, canvasElement)
+        drawHand(detections, canvas);
+    } else {
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
     // recursively call function to get new landmarks on next frame
     requestAnimationFrame(() =>
-        getHandLandmarks(videoElement, canvasElement, handLandmarkerModel),
+        getHandLandmarks(video, canvas, handLandmarkerModel),
     );
 };
 
 // draws landmark points on hand
 const drawHand = (detections, canvas) => {
+    // clears canvas from last frame
     const ctx = canvas.getContext("2d");
-    
+
     // clear previous frame
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
