@@ -1,8 +1,6 @@
 import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
-import calculateLogarithmicIndexFingerPosition from "./calculateLogarithmicIndexFingerPositionUtil";
-import { useHandTrackingCoordsStore } from "../store/useHandTrackingCoordsStore";
-const { setLeftIndexCoords, setRightIndexCoords } = useHandTrackingCoordsStore.getState();
-
+import { useAdapatedFingersCoordsStore } from "../store/useAdapatedFingersCoordsStore";
+const { setLeftIndexCoords, setRightIndexCoords } = useAdapatedFingersCoordsStore.getState();
 
 // initializes hand recognition model
 const initializeHandLandmarkerModel = async () => {
