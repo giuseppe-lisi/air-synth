@@ -8,7 +8,7 @@ import {
 export default function VideoFeedComponent() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const fingertipIndices = [4, 8];
+  const FINGERTIP_INDICES = [4, 8];
 
   useEffect(() => {
     let webcam;
@@ -27,7 +27,7 @@ export default function VideoFeedComponent() {
           videoRef.current,
           handLandmarkerModel,
           canvasRef.current,
-          fingertipIndices,
+          FINGERTIP_INDICES,
         );
       } catch (error) {
         console.log(
