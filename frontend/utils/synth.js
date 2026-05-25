@@ -33,8 +33,8 @@ export const createSynth = () => {
     }
 
     function setFrequency(value) {
-        osc1.frequency.rampTo(value, 0.1);
-        osc2.frequency.rampTo(value, 0.1);
+        osc1.frequency.rampTo(value, 0.05);
+        osc2.frequency.rampTo(value, 0.05);
     }
 
     function setVolume(value) {
@@ -54,6 +54,11 @@ export const createSynth = () => {
 
     function setFilterType(newType) {
         filter.type = newType;
+        if (newType == "notch" || newType == "bandpass") {
+            filter.Q = 30;
+        } else {
+            filter.Q = 0;
+        }
     }
 
     function setFilterRolloff(newRolloff) {
