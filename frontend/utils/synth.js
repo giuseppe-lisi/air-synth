@@ -11,6 +11,7 @@ export const createSynth = () => {
         volume: -12,
         type: "sine",
     }).connect(filter);
+
     const osc2 = new Tone.OmniOscillator({
         volume: -12,
         type: "sine",
@@ -31,10 +32,14 @@ export const createSynth = () => {
         console.log("waves:", osc1.type, osc2.type);
     }
 
-    function setVolume(osc, value) {
-        osc == "osc1"
-            ? osc1.volume.rampTo(value, 0.1)
-            : osc2.volume.rampTo(value, 0.1);
+    function setFrequency(value) {
+        osc1.frequency.rampTo(value, 0.1);
+        osc2.frequency.rampTo(value, 0.1);
+    }
+
+    function setVolume(value) {
+        osc1.volume.rampTo(value, 0.1);
+        osc2.volume.rampTo(value, 0.1);
     }
 
     function setDetune(osc, detuneValue) {
@@ -66,6 +71,7 @@ export const createSynth = () => {
         startPlaying,
         stopPlaying,
         setVolume,
+        setFrequency,
         setWaveform,
         setDetune,
         setFilterCutoffFrequency,
