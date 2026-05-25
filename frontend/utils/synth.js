@@ -5,7 +5,7 @@ export const createSynth = () => {
     const filter = new Tone.Filter({
         type: "lowpass",
         frequency: 1000,
-    }).toDestination();
+    });
     // create 2 oscillators
     const osc1 = new Tone.OmniOscillator({
         volume: -12,
@@ -37,8 +37,22 @@ export const createSynth = () => {
             : osc2.volume.rampTo(value, 0.1);
     }
 
-    function setCutoffFrequency(value) {
+    function setDetune(osc, detuneValue) {
+        osc == "osc1"
+            ? osc1.detune.rampTo(detuneValue, 0.1)
+            : osc2.detune.rampTo(detuneValue, 0.1);
+    }
+
+    function setFilterCutoffFrequency(value) {
         filter.frequency.rampTo(value, 0.05);
+    }
+
+    function setFilterType(newType) {
+        filter.type = newType;
+    }
+
+    function setFilterRolloff(newRolloff) {
+        filter.rolloff = newRolloff;
     }
 
     function toSpeakers() {
@@ -53,7 +67,10 @@ export const createSynth = () => {
         stopPlaying,
         setVolume,
         setWaveform,
-        setCutoffFrequency,
+        setDetune,
+        setFilterCutoffFrequency,
+        setFilterType,
+        setFilterRolloff,
         toSpeakers,
     };
 };
