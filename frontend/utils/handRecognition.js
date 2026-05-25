@@ -12,6 +12,7 @@ const createHandLandmarkerModel = async () => {
             {
                 baseOptions: {
                     modelAssetPath: "/hand_landmarker.task",
+                    delegate: "GPU",
                 },
                 numHands: 1,
                 runningMode: "VIDEO",
