@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useHandTrackingCoordsStore } from "../store/useHandTrackingCoordsStore";
 import * as Tone from "tone";
-import { createSynth } from "../utils/synth";
+import { createSynth } from "../../utils/synth";
+import { useAdapatedFingersCoordsStore } from "../../store/useAdapatedFingersCoordsStore";
 
 export default function SynthComponent() {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -45,11 +45,11 @@ export default function SynthComponent() {
             );
         }
 
-        const unsubscribe = useHandTrackingCoordsStore.subscribe(
-            (state) => state.indexX,
-            (xValue) => {
+        const unsubscribe = useAdapatedFingersCoordsStore.subscribe(
+            (state) => {},
+            (value) => {
                 if (synthRef.current) {
-                    synthRef.current.setFilterCutoffFrequency(xValue);
+                    return;
                 }
             },
         );
