@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { getWebcam } from "../../utils/getWebcamUtil.js";
 import { initializeHandLandmarkerModel, getHandLandmarks } from "../../utils/handTrackingUtils.js";
+import AudioMatrixOverlay from "./AudioMatrixOverlay.jsx";
 
 export default function VideoFeedComponent() {
     const videoRef = useRef(null);
@@ -76,6 +77,9 @@ export default function VideoFeedComponent() {
                     ref={canvasRef}
                     className="transform -scale-x-100 absolute top-0 left-0 w-full h-full z-10 pointer-events-none object-cover"
                 ></canvas>
+
+                {/* piano keyboard */}
+                <AudioMatrixOverlay />
             </div>
         </div>
     );
