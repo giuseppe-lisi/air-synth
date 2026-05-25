@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
 import { createSynth } from "../../utils/synth";
 import { useAdapatedFingersCoordsStore } from "../../store/useAdapatedFingersCoordsStore";
+import { Oscillator } from "./Oscillator";
 
 export default function SynthComponent() {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -23,15 +24,8 @@ export default function SynthComponent() {
         }
     };
 
-    const handleDetuneDoubleClick = (e) => {
-        if (e.target.name == "osc1") {
-            synthRef.current?.setDetune("osc1", 0);
-        } else {
-            synthRef.current?.setDetune("osc2", 0);
-        }
-    };
-
     useEffect(() => {
+        // initialize synth
         try {
             let synth = createSynth();
             synth.toSpeakers();
@@ -40,17 +34,21 @@ export default function SynthComponent() {
             }
         } catch (error) {
             console.log(
-                "Unable to create initialize tone.js objects: ",
+                "Unable to initialize tone.js objects: ",
                 error.message,
             );
         }
 
         const unsubscribe = useAdapatedFingersCoordsStore.subscribe(
-            (state) => {},
-            (value) => {
-                if (synthRef.current) {
-                    return;
-                }
+            (state) => ({leftIndexCoords: state.leftIndexCoords, rightIndexCoords: state.rightIndexCoords}),
+            ({leftIndexCoords, rightIndexCoords}) => {
+                if (!synthRef.current) {return;}
+
+                synthRef.current.setVolume(leftIndexCoords.y);
+                synthRef.current.setFilterCutoffFrequency(leftIndexCoords.x);
+                synthRef.current.setFrequency(rightIndexCoords.y);
+
+                // todo: hook up lfo to right index x position
             },
         );
 
@@ -76,167 +74,20 @@ export default function SynthComponent() {
                     {isPlaying ? "stop" : "play"}
                 </button>
 
-                {/* Synth params layout grid */}
+                {/* Synth components layout grid */}
                 <div className="w-full">
                     {/* OSC LAYOUT */}
                     <div className="flex gap-6 w-full">
                         {/* OSC 1 BLOCK */}
-                        <div className="border rounded-2xl p-6 bg-base-100 shadow-sm flex-1">
-                            <legend className="fieldset-legend font-black text-lg mb-4 text-primary">
-                                OSC 1
-                            </legend>
-
-                            <div className="form-control mb-4">
-                                <legend className="fieldset-legend text-xs opacity-70 mb-2 uppercase tracking-wide">
-                                    Waveform
-                                </legend>
-                                <select
-                                    name="osc1"
-                                    defaultValue="sine"
-                                    className="select select-bordered select-sm w-full"
-                                    onChange={(e) => {
-                                        synthRef.current?.setWaveform(
-                                            e.target.name,
-                                            e.target.value,
-                                        );
-                                    }}
-                                >
-                                    <option disabled={true}>waveform</option>
-                                    <option>sine</option>
-                                    <option>square</option>
-                                    <option>triangle</option>
-                                    <option>sawtooth</option>
-                                </select>
-                            </div>
-
-                            <div className="form-control">
-                                <legend className="fieldset-legend text-xs opacity-70 uppercase tracking-wide">
-                                    Volume
-                                </legend>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    className="range range-xs"
-                                    name="osc1"
-                                    step={0.01}
-                                    onChange={(e) => {
-                                        const linearGain = parseFloat(
-                                            e.target.value,
-                                        );
-                                        const db = Tone.gainToDb(linearGain);
-                                        synthRef.current?.setVolume(
-                                            e.target.name,
-                                            db,
-                                        );
-                                    }}
-                                />
-                            </div>
-
-                            {/* Detune */}
-                            <div className="form-control">
-                                <legend className="fieldset-legend text-xs opacity-70 uppercase tracking-wide">
-                                    Detune
-                                </legend>
-                                <input
-                                    type="range"
-                                    min="-500"
-                                    max="500"
-                                    className="range range-xs"
-                                    name="osc1"
-                                    step={1}
-                                    onDoubleClick={(e) => {
-                                        handleDetuneDoubleClick(e);
-                                        e.target.value = detuneDefaultValue;
-                                    }}
-                                    onChange={(e) => {
-                                        synthRef.current?.setDetune(
-                                            e.target.name,
-                                            Number(e.target.value),
-                                        );
-                                    }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* OSC 2  */}
-                        <div className="border rounded-2xl p-6 bg-base-100 shadow-sm flex-1">
-                            <legend className="fieldset-legend font-black text-lg mb-4 text-secondary">
-                                OSC 2
-                            </legend>
-
-                            <div className="form-control mb-4">
-                                <legend className="fieldset-legend text-xs opacity-70 uppercase mb-2">
-                                    Waveform
-                                </legend>
-                                <select
-                                    name="osc2"
-                                    defaultValue="sine"
-                                    className="select select-bordered select-sm w-full"
-                                    onChange={(e) => {
-                                        synthRef.current?.setWaveform(
-                                            e.target.name,
-                                            e.target.value,
-                                        );
-                                    }}
-                                >
-                                    <option disabled={true}>waveform</option>
-                                    <option>sine</option>
-                                    <option>square</option>
-                                    <option>triangle</option>
-                                    <option>sawtooth</option>
-                                </select>
-                            </div>
-
-                            <div className="form-control">
-                                <legend className="fieldset-legend text-xs opacity-70">
-                                    VOLUME
-                                </legend>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    className="range range-xs"
-                                    name="osc2"
-                                    step={0.01}
-                                    onChange={(e) => {
-                                        const linearGain = parseFloat(
-                                            e.target.value,
-                                        );
-                                        const db = Tone.gainToDb(linearGain);
-                                        synthRef.current?.setVolume(
-                                            e.target.name,
-                                            db,
-                                        );
-                                    }}
-                                />
-                            </div>
-
-                            {/* Detune */}
-                            <div className="form-control">
-                                <legend className="fieldset-legend text-xs opacity-70 uppercase tracking-wide">
-                                    Detune
-                                </legend>
-                                <input
-                                    type="range"
-                                    min="-500"
-                                    max="500"
-                                    className="range range-xs"
-                                    name="osc2"
-                                    step={1}
-                                    onDoubleClick={(e) => {
-                                        handleDetuneDoubleClick(e);
-                                        e.target.value = detuneDefaultValue;
-                                    }}
-                                    onChange={(e) => {
-                                        synthRef.current?.setDetune(
-                                            e.target.name,
-                                            Number(e.target.value),
-                                        );
-                                    }}
-                                />
-                            </div>
-                        </div>
+                        <Oscillator 
+                            oscNum="osc1" 
+                            synthRef={synthRef} 
+                        />
+                        {/* OSC 2 BLOCK */}
+                        <Oscillator 
+                            oscNum="osc2" 
+                            synthRef={synthRef} 
+                        />
                     </div>
 
                     {/* filter and envelope params */}
